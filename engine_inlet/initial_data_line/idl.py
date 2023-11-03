@@ -210,7 +210,7 @@ class Generate_2D_Initial_Data_Line(Generate_TMC_Initial_Data_Line):
             #if using class for region of flow upstream of cowl point and positive charcteristic
             self.generate_char_from_cowl_lip_to_incident_shock(inputs.geom, shockObj, gasProps)
             self.p02_p01_inc_shock = shockObj.p02_p01
-            self.get_properties_on_idl(gasProps)
+            self.get_properties_on_idl(gasProps, shockObj)
             return
 
         if endPoints is not None: 

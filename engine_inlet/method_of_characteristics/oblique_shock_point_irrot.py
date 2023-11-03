@@ -135,6 +135,7 @@ def wall_shock_point(pt_w_ups, y_x, dydx, pt1, pcTOL, delta, gasProps, shockDir)
         mu_ref = math.asin(1/M_ref) + math.atan(pt_r.v/pt_r.u)
         if abs(mu_ref) <= abs(beta_wall - def_w): 
             print("Warning: reference point upstream of shock wave")
+            raise ValueError
 
         #compute new shock point 
         [x4, y4, u4, v4] = up.interior_point(pt1, pt2, gasProps, delta, pcTOL, f)
