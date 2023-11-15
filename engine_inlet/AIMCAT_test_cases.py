@@ -18,13 +18,15 @@ aimcat.Main(inputFile:str, geomFile:str, plotFile:str or None, export:bool,
 
 #USER SETTINGS #################################################################
 #Test Cases (uncomment 1) 
-test_case = "straight_Cone_M2.5"
+#test_case = "straight_Cone_M2.5"
 #test_case = "NASA_D6078_M3.0"
 #test_case = "NASA_D6078_M3.47"
-#test_case = "2D_isentropic_ramp_M2.7"
+test_case = "2D_isentropic_ramp_M2.7"
+
+shock_mesh = False #if true, shock waves will be computed within the characteristic mesh 
 
 #Plotting 
-display_geometry_preview = True
+display_geometry_preview = False
 display_all_plots = True #if false, only the mesh will be displayed 
 
 #Export
@@ -34,24 +36,28 @@ export_to_csv = False
 
 if test_case == "straight_Cone_M2.5":
     inletFile = "straight_cone_M2.5_geom.json"
-    inputFile = 'straight_cone_M2.5_input.json'
+    if shock_mesh: inputFile = 'straight_cone_M2.5_shock_mesh_input.json'
+    else: inputFile = 'straight_cone_M2.5_isentropic_mesh_input.json'
 
 elif test_case == "NASA_D6078_M3.0":
     inletFile = "NASA_D6078_M3_geom.json"
-    inputFile = "NASA_D6078_M3_input.json"
+    if shock_mesh: inputFile = "NASA_D6078_M3_shock_mesh_input.json"
+    else: inputFile = "NASA_D6078_M3_isentropic_mesh_input.json"
 
 elif test_case == "NASA_D6078_M3.47":
     inletFile = "NASA_D6078_M3.47_geom.json"
-    inputFile = "NASA_D6078_M3.47_input.json"
+    if shock_mesh: inputFile = "NASA_D6078_M3.47_shock_mesh_input.json"
+    else: inputFile = "NASA_D6078_M3.47_isentropic_mesh_input.json"
 
 elif test_case == "2D_isentropic_ramp_M2.7":
     inletFile = "2D_isentropic_ramp_M2.7_geom.json"
-    inputFile = "2D_isentropic_ramp_M2.7_input.json"
+    if shock_mesh: inputFile = "2D_isentropic_ramp_M2.7_shock_mesh_input.json"
+    else: inputFile = "2D_isentropic_ramp_M2.7_isentropic_mesh_input.json"
 
 if display_all_plots: 
     plotfile = "plot_all.json" #full plots
 else: 
-    plotfile = "plot_mesh.json" #just the mesh
+    plotfile = "plot_mesh.json" #only show mesh
 
 #RUN SOLUTION###################################################################
 aimcat.Main(inputFile=inputFile, geomFile=inletFile, plotFile=plotfile, \
