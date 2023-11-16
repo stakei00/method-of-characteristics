@@ -130,7 +130,7 @@ class Mesh:
         generate fully isentropic mesh between cowl and centerbody 
         """
         prev_char = self.C_neg[-1]
-        charDir = "neg"
+        charDir = "neg" 
 
         if charDir == "pos":
             C_on, C_off = self.C_pos, self.C_neg
@@ -141,7 +141,9 @@ class Mesh:
             try: 
                 C_on, C_off = self.compute_next_char(prev_char, charDir, C_on, C_off)
                 prev_char = C_on[-1]  
-            except: break 
+            except Exception as error: 
+                print("isentropic mesh halted due to error: ", error)
+                break 
 
         if charDir == "pos":
             self.C_pos, self.C_neg = C_on, C_off
@@ -168,10 +170,14 @@ class Mesh:
                 elif charDir == "neg": charDir = "pos"
 
                 try: self.generate_mesh_for_shock_reflec(charDir)  
-                except: return 
+                except Exception as error: 
+                    print("shock mesh halted due to error: ", error)
+                    return 
                 
                 try: self.compute_wall_to_wall_shock(charDir, self.shockPts_backside[-1])
-                except: return 
+                except Exception as error: 
+                    print("shock mesh halted due to error: ", error)
+                    return 
 
     def generate_mesh_for_shock_reflec(self, charDir):
         
@@ -252,8 +258,9 @@ class Mesh:
             init_point = pt3
             prev_char = prev_char[2:] #trim prev_char
 
-        if continueChar is False:
-            C_on.append([init_point])
+        #! erroneous if statement? This is handled above on 255? 
+        #if continueChar is False:
+           # C_on.append([init_point])
 
         for pt in prev_char:
             pt2 = init_point #negative char source

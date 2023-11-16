@@ -157,7 +157,12 @@ class Main:
         import numpy as np 
         import math
         print("\nexporting solution...")
-        export_name = "save_" + self.inputs.geom.name + f"_M{self.inputs.M_inf}.csv"
+        export_name = "save_" + self.inputs.geom.name + f"_M{self.inputs.M_inf}"
+        if self.inputs.compute_shocks: 
+            export_name += "_shock"
+        else: 
+            export_name += "_isentropic"
+        export_name += ".csv"
 
         if os.path.isfile(export_name):
             abort = True

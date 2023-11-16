@@ -1,5 +1,6 @@
 from scipy.optimize import curve_fit 
-from scipy.interpolate import PchipInterpolator
+#from scipy.interpolate import PchipInterpolator
+from scipy import interpolate
 import math 
 """
 Class responsible for parametricising discrete geometry data into polynomial 
@@ -74,12 +75,14 @@ class Inlet_Geom:
                 curve = Composite_Curve(cowl_data_list)
             
             elif len(cowl_data_list) == 1: 
-                [type_, startpoint, xdata, ydata, startpoint_dydx, x_end, \
+                [type_, startpoint, xdata, ydata, startpoint_dydx, startpoint_d2ydx2, x_end, \
                     endpoint] = self.read_sub_dict(cowl_data_list[0])
                 
-                curve = Curve(type_, startpoint, xdata=xdata, ydata=ydata, \
-                              startpoint_dydx=startpoint_dydx, x_end=x_end, \
-                                endpoint=endpoint)
+                curve = Curve(type_, startpoint, xdata=xdata, ydata=ydata,
+                                                startpoint_dydx=startpoint_dydx, 
+                                                startpoint_d2ydx2=startpoint_d2ydx2,
+                                                x_end=x_end,
+                                                endpoint=endpoint)
 
             y_cowl = curve.y
             dydx_cowl = curve.dydx    
@@ -141,15 +144,19 @@ class Inlet_Geom:
         x_tot = []
         for curve in surface_list: 
             x_tot += curve["x coords"]
-            interpolator = PchipInterpolator(curve["x coords"], curve["y coords"], extrapolate=False)
+            #interpolator = PchipInterpolator(curve["x coords"], curve["y coords"], extrapolate=False)
+            spl = interpolate.splrep(curve["x coords"], curve["y coords"], k=3)
             def y(x):
-                y = None 
-                try: return float(interpolator(x)) #position
-                except: return y
-            def dydx(x):
-                dydx = None
-                try: return float(interpolator.derivative()(x))
-                except: return dydx 
+                try: 
+                    #return float(interpolator(x)) #position
+                    return interpolate.splev([x], spl, der=0)[0]
+                except: 
+                    return None
+            def dydx(x):    
+                try: 
+                    #return float(interpolator.derivative()(x))
+                    return interpolate.splev([x], spl, der=1)[0]               
+                except: return None
 
             y_list.append(y)
             dydx_list.append(dydx)
@@ -178,10 +185,12 @@ class Inlet_Geom:
         keys = subDict.keys()
         type_ = subDict["type"]
         startpoint = subDict["startpoint"]
-        startpoint_dydx,x_end,endpoint,xdata,ydata = None,None,None,None,None
+        startpoint_dydx, startpoint_d2ydx2, x_end,endpoint,xdata,ydata = None,None,None,None,None, None
         
         if "startpoint dydx" in keys:
             startpoint_dydx = subDict["startpoint dydx"]
+        if "startpoint d2ydx2" in keys: 
+            startpoint_d2ydx2 = subDict["startpoint d2ydx2"]
         if "endpoint x" in keys:
             x_end = subDict["endpoint x"]
         if "endpoint" in keys: 
@@ -189,7 +198,7 @@ class Inlet_Geom:
         if "xdata" in keys: 
             xdata, ydata = subDict["xdata"], subDict["ydata"]    
 
-        return [type_, startpoint, xdata, ydata, startpoint_dydx, x_end, endpoint]
+        return [type_, startpoint, xdata, ydata, startpoint_dydx, startpoint_d2ydx2, x_end, endpoint]
 
 
 class Curve:
@@ -198,23 +207,25 @@ class Curve:
     single curve from input data
     """
     def __init__(self, type_, startpoint, xdata=None, ydata=None, \
-                 startpoint_dydx=None, x_end=None, endpoint=None):
+                 startpoint_dydx=None, startpoint_d2ydx2=None, x_end=None, endpoint=None):
         
         if type_=="linear":
-            y, dydx = self.linear_poly(startpoint, startPoint_dydx=startpoint_dydx, \
+            y, dydx, d2ydx2 = self.linear_poly(startpoint, startPoint_dydx=startpoint_dydx, \
                                   x_end=x_end, endPoint=endpoint)
             if x_end is not None: self.x_bounds = (startpoint[0], x_end)
             elif endpoint is not None: self.x_bounds = (startpoint[0], endpoint[0])
 
         elif type_=="polynomial":
-            y,dydx = self.least_squares_5th_order_poly(xdata, ydata, startpoint,\
-                                                startPoint_dydx=startpoint_dydx)
+            y,dydx, d2ydx2 = self.least_squares_poly(xdata, ydata, startpoint,\
+                                                startPoint_dydx=startpoint_dydx, 
+                                                startpoint_d2ydx2=startpoint_d2ydx2)
             self.x_bounds =(startpoint[0], max(xdata))
 
         self.y = y
         self.dydx = dydx
+        self.d2ydx2 = d2ydx2
 
-    def least_squares_5th_order_poly(self, xs, ys, startPoint, startPoint_dydx=None):
+    def least_squares_poly(self, xs, ys, startPoint, startPoint_dydx=None, startpoint_d2ydx2=None):
         """
         returns polymial equation for y_x as well as dydx of a curve defined 
         """
@@ -225,10 +236,13 @@ class Curve:
         def func_free(x, A, B, C, D, E):
             return A*(x-x_a)**5 + B*(x-x_a)**4 + C*(x-x_a)**3 + D*(x-x_a)**2 + E*(x-x_a) + y_a
 
-        def func_const_deriv(x, A, B, C, D):
+        def func_const_1st_deriv(x, A, B, C, D):
             return A*(x-x_a)**5 + B*(x-x_a)**4 + C*(x-x_a)**3 + D*(x-x_a)**2 + startPoint_dydx*(x-x_a) + y_a
+        
+        def func_const_1st_and_2nd_deriv(x, A, B, C, D):
+            return A*(x-x_a)**6 + B*(x-x_a)**5 + C*(x-x_a)**4 + D*(x-x_a)**3 + startpoint_d2ydx2*(x-x_a)**2 + startPoint_dydx*(x-x_a) + y_a
 
-        if startPoint_dydx is None: 
+        if startpoint_d2ydx2 is None and startPoint_dydx is None: 
             coeffs, _ = curve_fit(func_free, xs, ys)
             A,B,C,D,E = coeffs[0],coeffs[1],coeffs[2],coeffs[3],coeffs[4]
             def y_x(x):
@@ -239,9 +253,13 @@ class Curve:
                 if x_a <= x <= max(xs):
                     return 5*A*(x-x_a)**4 + 4*B*(x-x_a)**3 + 3*C*(x-x_a)**2 + 2*D*(x-x_a) + E
                 else: return None 
+            def d2ydx2_x(x):
+                if x_a <= x <= max(xs):
+                    return 20*A*(x-x_a)**3 + 12*B*(x-x_a)**2 + 6*C*(x-x_a) + 2*D
+                else: return None 
 
-        if startPoint_dydx is not None: 
-            coeffs, _ = curve_fit(func_const_deriv, xs, ys)
+        if startPoint_dydx is not None and startpoint_d2ydx2 is None: 
+            coeffs, _ = curve_fit(func_const_1st_deriv, xs, ys)
             A,B,C,D = coeffs[0],coeffs[1],coeffs[2],coeffs[3]
             def y_x(x):
                 if x_a <= x <= max(xs): 
@@ -251,13 +269,34 @@ class Curve:
                 if x_a <= x <= max(xs):
                     return 5*A*(x-x_a)**4 + 4*B*(x-x_a)**3 + 3*C*(x-x_a)**2 + 2*D*(x-x_a) + startPoint_dydx
                 else: return None
+            def d2ydx2_x(x):
+                if x_a <= x <= max(xs):
+                    return 20*A*(x-x_a)**3 + 12*B*(x-x_a)**2 + 6*C*(x-x_a) + 2*D
+                else: return None
+
+        if startpoint_d2ydx2 is not None and startPoint_dydx is not None:
+            #curves enforcing a set first and 2nd derivative 
+            coeffs, _ = curve_fit(func_const_1st_and_2nd_deriv, xs, ys)
+            A,B,C,D = coeffs[0],coeffs[1],coeffs[2],coeffs[3]
+            def y_x(x):
+                if x_a <= x <= max(xs): 
+                    return A*(x-x_a)**6 + B*(x-x_a)**5 + C*(x-x_a)**4 + D*(x-x_a)**3 + startpoint_d2ydx2*(x-x_a)**2 + startPoint_dydx*(x-x_a) + y_a
+                else: return None
+            def dydx_x(x):
+                if x_a <= x <= max(xs):
+                    return 6*A*(x-x_a)**5 + 5*B*(x-x_a)**4 + 4*C*(x-x_a)**3 + 3*D*(x-x_a)**2 + 2*startpoint_d2ydx2*(x-x_a) + startPoint_dydx
+                else: return None 
+            def d2ydx2_x(x):
+                if x_a <= x <= max(xs):
+                    return 30*A*(x-x_a)**4 + 20*B*(x-x_a)**3 + 12*C*(x-x_a)**2 + 6*D*(x-x_a) + 2*startpoint_d2ydx2
+                else: return None 
 
         #compile error and print to console
         y_x_err = [abs(y_x(x) - ys[i]) for i,x in enumerate(xs)]
         print(f"\nmaximum least squares position error: {max(y_x_err)}\n\
               average error: {sum(y_x_err)/len(y_x_err)}")
 
-        return y_x, dydx_x
+        return y_x, dydx_x, d2ydx2_x
 
     def linear_poly(self, startPoint, startPoint_dydx=None, x_end=None, endPoint=None):
         """
@@ -285,8 +324,13 @@ class Curve:
             if x_a <= x <= x_b:
                 return m
             else: return None
+        def d2ydx2_x(x):
+            if x_a <= x <= x_b:
+                return 0
+            else: 
+                return None 
 
-        return y_x, dydx_x
+        return y_x, dydx_x, d2ydx2_x
 
 
 class Composite_Curve(Inlet_Geom): 
@@ -300,23 +344,27 @@ class Composite_Curve(Inlet_Geom):
         dydx_funcs = []
         endpoint_prev = None
         endpoint_dydx_prev = None
+        endpoint_d2ydx2_prev = None
         x_endpoints = []
 
         for i,subDict in enumerate(curves_list):
             
-            [type_, startpoint, xdata, ydata, startpoint_dydx, x_end, endpoint] = self.read_sub_dict(subDict)
+            [type_, startpoint, xdata, ydata, startpoint_dydx, startpoint_d2ydx2, x_end, endpoint] = self.read_sub_dict(subDict)
             if i == 0: x_endpoints.append(startpoint[0])
 
             if startpoint == "prev endpoint":
                 startpoint = endpoint_prev
             if startpoint_dydx == "prev endpoint":
                 startpoint_dydx = endpoint_dydx_prev
+            if startpoint_d2ydx2 == "prev endpoint":
+                startpoint_d2ydx2 = endpoint_d2ydx2_prev
 
-            curve = Curve(type_, startpoint, xdata, ydata, startpoint_dydx, x_end, endpoint)
+            curve = Curve(type_, startpoint, xdata, ydata, startpoint_dydx, startpoint_d2ydx2, x_end, endpoint)
             x_endpoints.append(curve.x_bounds[-1])
             y_funcs.append(curve.y), dydx_funcs.append(curve.dydx)
             endpoint_prev = (curve.x_bounds[-1], curve.y(curve.x_bounds[-1]))
             endpoint_dydx_prev = curve.dydx(curve.x_bounds[-1])
+            endpoint_d2ydx2_prev = curve.d2ydx2(curve.x_bounds[-1])
 
         self.x_bounds = (min(x_endpoints), max(x_endpoints))
         self.merge_curve_functions(y_funcs, dydx_funcs)

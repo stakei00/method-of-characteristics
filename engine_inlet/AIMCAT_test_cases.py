@@ -18,16 +18,17 @@ aimcat.Main(inputFile:str, geomFile:str, plotFile:str or None, export:bool,
 
 #USER SETTINGS #################################################################
 #Test Cases (uncomment 1) 
-#test_case = "straight_Cone_M2.5"
+test_case = "straight_Cone_M2.5"
 #test_case = "NASA_D6078_M3.0"
 #test_case = "NASA_D6078_M3.47"
-test_case = "2D_isentropic_ramp_M2.7"
+#test_case = "2D_isentropic_ramp_M2.7"
 
+#Characterisic Mesh
 shock_mesh = False #if true, shock waves will be computed within the characteristic mesh 
 
 #Plotting 
-display_geometry_preview = False
-display_all_plots = True #if false, only the mesh will be displayed 
+display_geometry_preview = True
+display_all_plots = False #if false, only the mesh will be displayed 
 
 #Export
 export_to_csv = False
@@ -41,11 +42,13 @@ if test_case == "straight_Cone_M2.5":
 
 elif test_case == "NASA_D6078_M3.0":
     inletFile = "NASA_D6078_M3_geom.json"
+    #inletFile = "NASA_D6078_M3_Interpolated.json"
     if shock_mesh: inputFile = "NASA_D6078_M3_shock_mesh_input.json"
     else: inputFile = "NASA_D6078_M3_isentropic_mesh_input.json"
 
 elif test_case == "NASA_D6078_M3.47":
     inletFile = "NASA_D6078_M3.47_geom.json"
+    #inletFile = "NASA_D6078_M3.47_Interpolated.json"
     if shock_mesh: inputFile = "NASA_D6078_M3.47_shock_mesh_input.json"
     else: inputFile = "NASA_D6078_M3.47_isentropic_mesh_input.json"
 
