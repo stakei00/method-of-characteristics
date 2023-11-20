@@ -3,7 +3,7 @@ from scipy.optimize import curve_fit
 from scipy import interpolate
 import math 
 """
-Class responsible for parametricising discrete geometry data into polynomial 
+Class responsible for parametricizing discrete geometry data into polynomial 
 equations which can be used with AIMCAT
 """
 class Inlet_Geom:
@@ -26,8 +26,8 @@ class Inlet_Geom:
             if key == "centerbody fit data": centerbody_data_list = inputDict[key]
             if key == "cowl functions": cowl_list = inputDict[key]
             if key == "centerbody functions": centerbody_list = inputDict[key]
-            if key == "cowl coordinates": cowl_coord_list = inputDict[key]
-            if key == "centerbody coordinates": centerbody_coord_list = inputDict[key]
+            if key == "cowl interpolant coordinates": cowl_coord_list = inputDict[key]
+            if key == "centerbody interpolant coordinates": centerbody_coord_list = inputDict[key]
             if key == "cowl lip x coord": x_lip = inputDict[key]
 
         self.x_cowlLip = x_lip
@@ -40,7 +40,7 @@ class Inlet_Geom:
             y_centerbody, dydx_centerbody, centerbody_bounds = self.unpack_surface_function_list(centerbody_list)
 
         elif centerbody_coord_list is not None:
-            y_centerbody, dydx_centerbody, centerbody_bounds = self.process_coords_list(centerbody_coord_list) 
+            y_centerbody, dydx_centerbody, centerbody_bounds = self.interpolate_coords(centerbody_coord_list) 
 
         elif centerbody_data_list is not None: #if geometry includes centerbody data 
             if len(centerbody_data_list) > 1: 
@@ -67,7 +67,7 @@ class Inlet_Geom:
             y_cowl, dydx_cowl, cowl_bounds = self.unpack_surface_function_list(cowl_list)
 
         elif cowl_coord_list is not None: 
-            y_cowl, dydx_cowl, cowl_bounds = self.process_coords_list(cowl_coord_list) 
+            y_cowl, dydx_cowl, cowl_bounds = self.interpolate_coords(cowl_coord_list) 
 
         elif cowl_data_list is not None: #if geometry includes cowl data
             
@@ -136,7 +136,7 @@ class Inlet_Geom:
 
         return y_func_combined, dydx_func_combined, [min(endpoints_flatten), max(endpoints_flatten)]
        
-    def process_coords_list(self, surface_list):
+    def interpolate_coords(self, surface_list):
         """
         uses pchip interpolation to define the surface
         """
@@ -146,16 +146,19 @@ class Inlet_Geom:
             x_tot += curve["x coords"]
             #interpolator = PchipInterpolator(curve["x coords"], curve["y coords"], extrapolate=False)
             spl = interpolate.splrep(curve["x coords"], curve["y coords"], k=3)
+            #spl = interpolate.CubicSpline(curve["x coords"], curve["y coords"])
             def y(x):
                 try: 
                     #return float(interpolator(x)) #position
                     return interpolate.splev([x], spl, der=0)[0]
+                    #return float(spl(x, nu=0))
                 except: 
                     return None
             def dydx(x):    
                 try: 
                     #return float(interpolator.derivative()(x))
-                    return interpolate.splev([x], spl, der=1)[0]               
+                    return interpolate.splev([x], spl, der=1)[0] 
+                    #return float(spl(x, nu=1))         
                 except: return None
 
             y_list.append(y)

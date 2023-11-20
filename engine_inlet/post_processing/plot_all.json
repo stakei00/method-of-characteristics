@@ -14,7 +14,7 @@
         "type": "scalar",
         "parameter": "mach",
         "show surface plots": true,
-        "colorbar label": "MACH #"
+        "colorbar label": "Mach"
     },
     "PRESSURE RATIO":{
         "type": "scalar",

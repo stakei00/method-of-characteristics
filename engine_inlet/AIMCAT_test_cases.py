@@ -1,4 +1,3 @@
-import AIMCAT as aimcat
 """
 Control script for aimcat module. Specify input file locations and run AIMCAT by
 calling class "Main" with the appropriate inputs filled out. 
@@ -15,20 +14,19 @@ aimcat.Main(inputFile:str, geomFile:str, plotFile:str or None, export:bool,
     Returns: 
         None
 """
-
 #USER SETTINGS #################################################################
 #Test Cases (uncomment 1) 
-test_case = "straight_Cone_M2.5"
+#test_case = "straight_Cone_M2.5"
 #test_case = "NASA_D6078_M3.0"
 #test_case = "NASA_D6078_M3.47"
-#test_case = "2D_isentropic_ramp_M2.7"
+test_case = "2D_isentropic_ramp_M2.7"
 
-#Characterisic Mesh
-shock_mesh = False #if true, shock waves will be computed within the characteristic mesh 
+#Characterisic Mesh Type
+shock_mesh = True #if true, shock waves will be computed within the mesh 
 
 #Plotting 
 display_geometry_preview = True
-display_all_plots = False #if false, only the mesh will be displayed 
+display_all_plots = False #if True, all plots will be displayed, otherwise just mesh
 
 #Export
 export_to_csv = False
@@ -41,14 +39,14 @@ if test_case == "straight_Cone_M2.5":
     else: inputFile = 'straight_cone_M2.5_isentropic_mesh_input.json'
 
 elif test_case == "NASA_D6078_M3.0":
-    inletFile = "NASA_D6078_M3_geom.json"
-    #inletFile = "NASA_D6078_M3_Interpolated.json"
+    #inletFile = "NASA_D6078_M3_geom.json"
+    inletFile = "NASA_D6078_M3_Interpolated.json"
     if shock_mesh: inputFile = "NASA_D6078_M3_shock_mesh_input.json"
     else: inputFile = "NASA_D6078_M3_isentropic_mesh_input.json"
 
 elif test_case == "NASA_D6078_M3.47":
-    inletFile = "NASA_D6078_M3.47_geom.json"
-    #inletFile = "NASA_D6078_M3.47_Interpolated.json"
+    #inletFile = "NASA_D6078_M3.47_geom.json"
+    inletFile = "NASA_D6078_M3.47_Interpolated.json"
     if shock_mesh: inputFile = "NASA_D6078_M3.47_shock_mesh_input.json"
     else: inputFile = "NASA_D6078_M3.47_isentropic_mesh_input.json"
 
@@ -63,5 +61,9 @@ else:
     plotfile = "plot_mesh.json" #only show mesh
 
 #RUN SOLUTION###################################################################
-aimcat.Main(inputFile=inputFile, geomFile=inletFile, plotFile=plotfile, \
-            export=export_to_csv, preview_geom=display_geometry_preview)
+import AIMCAT as aimcat
+aimcat.Main(inputFile=inputFile, 
+            geomFile=inletFile, 
+            plotFile=plotfile,
+            export=export_to_csv, 
+            preview_geom=display_geometry_preview)

@@ -388,9 +388,9 @@ class Preview_Geom(create_figure):
         self.plot_inlet_geom(axs[0], mainObj.inputs.geom)
 
         x_cb = np.linspace(mainObj.inputs.geom.centerbody_bounds[0], \
-                           mainObj.inputs.geom.centerbody_bounds[1], 200)
+                           mainObj.inputs.geom.centerbody_bounds[1], 500)
         x_cowl = np.linspace(mainObj.inputs.geom.cowl_bounds[0], \
-                             mainObj.inputs.geom.cowl_bounds[1], 200)
+                             mainObj.inputs.geom.cowl_bounds[1], 500)
         
         #Display the first derivative 
         dydx_cb = np.array([mainObj.inputs.geom.dydx_centerbody(x) for x in x_cb])

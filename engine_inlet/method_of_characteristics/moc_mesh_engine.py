@@ -46,12 +46,11 @@ class Mesh:
         if self.init_method == "STRAIGHT IDL":
             self.generate_initial_mesh_from_straight_idl(charDir) #generate initial mesh from idl
         elif self.init_method == "MACH LINE":
-            #self.generate_initial_mesh_from_mach_line_idl(charDir)
-            self.generate_initial_mesh_from_mach_line_idl(charDir) #generate intial mesh from idl 
+            self.generate_initial_mesh_from_mach_line_idl(charDir) #generate intial mesh from idl  
             
-            #check if characteristic intersection with centerbody is acceptable 
-            #if not: use backup function
-          
+        #check if characteristic intersection with centerbody is acceptable 
+        #if not: use backup function
+
         if explicit_shocks: 
             shockPt_init = self.idl[-1]
             shockPt_init.isShock = True

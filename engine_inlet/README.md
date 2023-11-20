@@ -18,11 +18,18 @@ The intended workflow for this tool is as follows:
 
 1. configure input files 
     a. run file (.json) - contains parameters including freestream properties, 
-        gas constants, and mesh settings (see Input folder)
-    b. geometry file (.json) - class containing functions for y(x) and dy/dx(x) 
-        for centerbody and cowl surfaces (see geometry folder)
+        gas constants, and mesh settings (see Input folder for examples)
+    b. geometry file (.json) - class containing geometry data. Can be of multiple forms: 
+        -piecewise function declaration (see 'geometry/straight_cone_M2.5_geom.json')
+        -least squares polynomial fit with 1st and 2nd derivative continuity
+            see ('geometry/NASA_D6078_MX.XX_geom.json)
+        -spline interpolation (see 'geometry/NASA_D6078_MX.XX_Interpolated.json')
     c. plot profile (.json) - contains settings for generating figures after a 
         solution has been run (see post_processing folder)
+            see 'post_processing/plot_all.json' for generating full range of plots 
 
-2. run the main class by importing aimcat, calling aimcat.main() with your .json
-input files. 
+2. run the main class by importing aimcat, calling aimcat.main() with all your .json
+input file paths as arguments. Boolean keyword arguments include:
+
+        export:         export results to .csv file when solution finished 
+        preview_geom:  generate a preview of the loaded geometry before solving 
