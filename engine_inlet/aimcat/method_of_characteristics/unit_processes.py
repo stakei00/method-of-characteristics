@@ -17,6 +17,19 @@ class operator_funcs:
         self.lam = lambda lam1, lam2 : 0.5*(lam1 + lam2)
         self.lam_min = lambda u, v, a : (u*v - a*math.sqrt(u**2 + v**2 - a**2))/(u**2 - a**2)
         self.lam_plus = lambda u, v, a : (u*v + a*math.sqrt(u**2 + v**2 - a**2))/(u**2 - a**2)
+    """
+    def lam_min(self, u, v, a):
+        try:
+            return (u*v - a*math.sqrt(u**2 + v**2 - a**2))/(u**2 - a**2)
+        except:
+            return (u*v - a*10e-6)/(u**2 - a**2)
+        
+    def lam_plus(self, u, v, a):
+        try: 
+            return (u*v + a*math.sqrt(u**2 + v**2 - a**2))/(u**2 - a**2)
+        except: 
+            return (u*v + a*10e-6)/(u**2 - a**2)
+    """
 
 
 def get_percent_changes(pt_old, pt_new):
@@ -90,6 +103,10 @@ def interior_point(pt1, pt2, gasProps, delta, pcTOL, funcs):
 
         pcVel, pcPos = get_percent_changes([x3_old, y3_old, u3_old, v3_old],[x3, y3, u3, v3]) #get percent change across iteration
         pc_it = max([pcVel, pcPos])
+
+    #check if value is subsonic 
+    if math.sqrt(u3**2 + v3**2) < funcs.a(a0, gam, u3, v3):
+        raise ValueError("Subsonic Flow At Mesh Point")
 
     return [x3, y3, u3, v3]
 
@@ -169,6 +186,10 @@ def direct_wall(pt1, y_x, dydx, gasProps, delta, pcTOL, funcs, charDir):
         pcVel, pcPos = get_percent_changes([x3_old, y3_old, u3_old, v3_old],[x3, y3, u3, v3]) #get percent change across iteration
         pc_it = max([pcVel, pcPos])
 
+    #check if value is subsonic 
+    if math.sqrt(u3**2 + v3**2) < funcs.a(a0, gam, u3, v3):
+        raise ValueError("Subsonic Flow At Mesh Point")
+    
     return [x3, y3, u3, v3] 
 
 

@@ -1,5 +1,5 @@
 #Ignore the deprecated folder
-Deprecated/
+deprecated/
 
 #Ignore pycache folders and their contents
 __pycache__/

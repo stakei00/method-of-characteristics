@@ -1,10 +1,9 @@
-import method_of_characteristics.unit_processes as moc_op
-import method_of_characteristics.oblique_shock_point_irrot as shock
+import aimcat.method_of_characteristics.unit_processes as moc_op
+import aimcat.method_of_characteristics.oblique_shock_point_irrot as shock
 import math
 import numpy as np
 """
 Module responsible for generating method-of-characteristics mesh and mesh points
-TODO: for shock mesh, make function to perform inverse wall operations in compression corners and add to shockPoint list
 """
 
 class Mesh:
@@ -50,7 +49,6 @@ class Mesh:
             
         #check if characteristic intersection with centerbody is acceptable 
         #if not: use backup function
-
         if explicit_shocks: 
             shockPt_init = self.idl[-1]
             shockPt_init.isShock = True
@@ -168,11 +166,11 @@ class Mesh:
                 if charDir == "pos": charDir = "neg"
                 elif charDir == "neg": charDir = "pos"
 
-                try: self.generate_mesh_for_shock_reflec(charDir)  
+                try:
+                    self.generate_mesh_for_shock_reflec(charDir)  
                 except Exception as error: 
                     print("shock mesh halted due to error: ", error)
-                    return 
-                
+                    return
                 try: self.compute_wall_to_wall_shock(charDir, self.shockPts_backside[-1])
                 except Exception as error: 
                     print("shock mesh halted due to error: ", error)
@@ -183,10 +181,12 @@ class Mesh:
         if charDir == "pos":
             C_on = self.C_neg
             C_off = self.C_pos
+            offCharDir = "neg"
             y_x, dydx = self.geom.y_cowl, self.geom.dydx_cowl
         elif charDir == "neg":
             C_on = self.C_pos
             C_off = self.C_neg
+            offCharDir = "pos"
             y_x, dydx = self.geom.y_centerbody, self.geom.dydx_centerbody
 
         pointList = C_on[-1]
@@ -200,6 +200,7 @@ class Mesh:
             C_on.append([init_point]), C_off[ii].append(init_point), self.triangle_obj.append([init_point, pt, None])
             dataLine = pointList[2:]
 
+            #C_on, C_off = self.compute_next_char(dataLine, offCharDir, C_on, C_off, init_wall=False, init_point=init_point, terminate_wall=False, continueChar=True, truncate_on_intersect=True)
 
             if charDir=="pos": 
                 C_on, C_off = self.compute_next_neg_char(init_point, dataLine, onChars=C_on, offChars=C_off, continueChar=True, terminate_wall=False, check_for_intersect=False)
@@ -207,8 +208,8 @@ class Mesh:
                 C_on, C_off = self.compute_next_pos_char(init_point, dataLine, onChars=C_on, offChars=C_off, continueChar=True, terminate_wall=False, check_for_intersect=False)
 
             pointList = C_on[-1]
-            count += 1
-        
+            count += 1 
+    
         pt = pointList[1]
         ii,_ = self.find_mesh_point(pt, C_off)
         [x3, y3, u3, v3] = moc_op.direct_wall(pt, y_x, dydx, self.gasProps, self.delta, self.pcTOL, self.funcs, charDir)
@@ -222,8 +223,8 @@ class Mesh:
             self.C_pos = C_on
             self.C_neg = C_off
 
-    def compute_next_char(self, prev_char, charDir, C_on, C_off, init_wall=True,\
-                          init_point=None, terminate_wall=True, continueChar=False):
+    def compute_next_char(self, prev_char, charDir, C_on, C_off, init_wall=True,
+                          init_point=None, terminate_wall=True, continueChar=False, truncate_on_intersect=False):
         """
         computes the next charDir:pos/neg characteristic based on a previous 
         characteristic in the same family. Essentially advances the mesh forward
@@ -257,7 +258,7 @@ class Mesh:
             init_point = pt3
             prev_char = prev_char[2:] #trim prev_char
 
-        #! erroneous if statement? This is handled above on 255? 
+        #! erroneous if statement? This is handled above? 
         #if continueChar is False:
            # C_on.append([init_point])
 
@@ -276,6 +277,10 @@ class Mesh:
 
             intersect, type_ = self.check_for_interior_intersect(pt3, pt2, pt1, C_off, charDir)
             if intersect: #if intersection occured
+                
+                if truncate_on_intersect:
+                    return C_on, C_off
+
                 if type_ == 1: #handle type 1 intersection
                     C_on, C_off = self.trim_mesh_after_intersect(pt2, pt1, charDir, C_on=C_on, C_off=C_off)
                     init_point = pt2
@@ -353,7 +358,8 @@ class Mesh:
             [x3, y3, u3, v3] = moc_op.interior_point(pt1, pt2, self.gasProps, self.delta, self.pcTOL, self.funcs)
             pt3 = Mesh_Point(x3, y3, u3, v3, self.working_region)
             if check_for_intersect: 
-                if self.check_for_int_intersect(pt3, pt2, pt1, "neg"):
+                if self.check_for_interior_intersect(pt3, pt2, pt1, C_off, "neg"):
+
                     self.hasIntersected = True #indicate that an intersection has occurred 
                     self.trim_mesh_after_intersect(pt2, pt1, "neg")
                     init_point = pt2
@@ -421,7 +427,8 @@ class Mesh:
             [x3, y3, u3, v3] = moc_op.interior_point(pt1, pt2, self.gasProps, self.delta, self.pcTOL, self.funcs)
             pt3 = Mesh_Point(x3, y3, u3, v3, self.working_region)
             if check_for_intersect: 
-                if self.check_for_int_intersect(pt3, pt2, pt1, "pos"):
+                if self.check_for_interior_intersect(pt3, pt2, pt1, C_off, "pos"):
+                    
                     self.hasIntersected = True 
                     self.trim_mesh_after_intersect(pt2, pt1, "pos")
                     init_point = pt1
@@ -666,7 +673,7 @@ class Mesh:
             count += 1
             if C_off[ii][jj-1].isWall:
                 break
-        
+
         #TO WALL SHOCK POINT####################################################
         [i,j] = self.find_mesh_point(pt_s_ups, C_on)
         pt = C_on[i][j+1]

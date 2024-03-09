@@ -128,8 +128,11 @@ class create_figure:
         if hasattr(self, "figname"):
             self.fig.canvas.manager.set_window_title(self.figname)
 
-        figManager = plt.get_current_fig_manager()
-        figManager.window.showMaximized()
+        try: 
+            figManager = plt.get_current_fig_manager()
+            figManager.window.showMaximized()
+        except:
+            pass 
 
         if self.xlim is not None: 
             ax1.set_xlim(self.xlim[0], self.xlim[-1])
@@ -278,13 +281,11 @@ class create_figure:
             x_reg.append(r*math.cos(thet))
             y_reg.append(r*math.sin(thet))
             scal_reg.append(getattr(data_ups, self.scalar)[i])
-            
         x_reg += data_ups.x
         y_reg += data_ups.y
         scal_reg += getattr(data_ups, self.scalar)
         tri_reg = matplotlib.tri.Triangulation(x_reg, y_reg)
         ax.tricontourf(tri_reg, scal_reg, 100, cmap='jet', vmin=lims[0],vmax=lims[1])
-
         #plot region from tip of cone to initial data line 
         idl = mainObj.idlObj
         x_reg, y_reg, scal_reg = [],[],[]
@@ -376,8 +377,17 @@ class create_figure:
 
 class Preview_Geom(create_figure):
 
-    def __init__(self, mainObj:object, plotSettings:dict):
+    def __init__(self, mainObj:object, plotSettings:dict, style="2"):
 
+        if style == "1":
+            self.generate_geom_preview_style_1(mainObj, plotSettings)
+        elif style == "2":
+            self.generate_geom_preview_style_2(mainObj, plotSettings)
+
+        print("\nGeometry preview generated. Close figure to continue")
+
+    def generate_geom_preview_style_1(self, mainObj: object, plotSettings:dict):
+        #default geometry preview plot 
         self.set_default_settings(plotSettings)
         fig, axs = plt.subplots(3,1,figsize=self.figsize, gridspec_kw={"height_ratios":[1.75,1,1]})
         
@@ -415,6 +425,85 @@ class Preview_Geom(create_figure):
         axs[2].set_xlim(self.xlim)
         axs[2].legend()
         axs[2].grid(linewidth=0.2, color='grey')
-
-        print("\nGeometry preview generated. Close figure to continue")
         plt.show()
+
+    def generate_geom_preview_style_2(self, mainObj:object, plotSettings:dict, cowl_plots=True, cb_plots=True, save_to_tikz=False):
+
+        fig, ax1 = plt.subplots(figsize=(12,4))
+        ax1.set_xlabel("nondimensional x-position")
+        ax2 = ax1.twinx()
+
+        #plotting original geometry 
+        cowl_limits = mainObj.inputs.geom.cowl_bounds
+        centerbody_limits = mainObj.inputs.geom.centerbody_bounds
+        x_cowl = np.linspace(cowl_limits[0], cowl_limits[1], 500)
+        x_centerbody = np.linspace(centerbody_limits[0], centerbody_limits[1], 500)
+        y_cowl = np.array([mainObj.inputs.geom.y_cowl(x) for x in x_cowl])
+        y_cb = np.array([mainObj.inputs.geom.y_centerbody(x) for x in x_centerbody])
+
+        scaling_factor = 0.35 #adjust as needed 
+        cowl_scaled = y_cowl*scaling_factor 
+        centerbody_scaled = y_cb*scaling_factor
+        ax1.plot(x_cowl, cowl_scaled, alpha=0.5, color="black")
+        ax1.plot(x_centerbody, centerbody_scaled, alpha=0.5, color="black")
+        ax1.set_ylim([-0.2, 0.4])
+        ax1.set_xlim([0,4])
+        ax1.set_ylabel("Slope", color="tab:red")
+        ax2.set_ylabel("Curvature", color="tab:blue")
+
+
+        if cowl_plots:
+            dydx_cowl = np.array([mainObj.inputs.geom.dydx_cowl(x) for x in x_cowl])
+            d2ydx2_cowl = np.gradient(dydx_cowl, x_cowl[1]-x_cowl[0])
+            k_cowl = [abs(d2ydx2_cowl[i]/((1 + dydx**2)**(3/2))) for i,dydx in enumerate(dydx_cowl)]
+            ax1.plot(x_cowl, dydx_cowl, color="tab:red", label="Cowl", linewidth=2)
+            ax2.plot(x_cowl, k_cowl, color="tab:blue", label="_nolegend", linewidth=2)
+
+
+        if cb_plots: 
+            dydx_cb = np.array([mainObj.inputs.geom.dydx_centerbody(x) for x in x_centerbody])
+            d2ydx2_cb = np.gradient(dydx_cb, x_centerbody[1]-x_centerbody[0])
+            k_cb = [abs(d2ydx2_cb[i]/((1 + dydx**2)**(3/2))) for i,dydx in enumerate(dydx_cb)]
+            ax1.plot(x_centerbody, dydx_cb, color="tab:red", label="Centerbody", linewidth=2)
+            ax2.plot(x_centerbody, k_cb, color="tab:blue", label="_nolegend_", linewidth=2)
+
+        #change y axis colors
+        ax1.spines["left"].set_color("tab:red")
+        ax1.tick_params(axis="y", colors="tab:red")
+        ax1.set_yticks(self.calculate_ticks(ax1, 5))
+        ax1.yaxis.label.set_color("tab:red")
+
+        ax2.spines["right"].set_color("tab:blue")
+        ax2.tick_params(axis="y", colors="tab:blue")
+        ax2.set_yticks(self.calculate_ticks(ax2, 5))
+        ax2.yaxis.label.set_color("tab:blue")
+        ax1.legend() 
+
+        if save_to_tikz: 
+            import tikzplotlib
+            def tikzplotlib_fix_ncols(obj):
+                """
+                workaround for matplotlib 3.6 renamed legend's _ncol to _ncols, which breaks tikzplotlib
+                """
+                if hasattr(obj, "_ncols"):
+                    obj._ncol = obj._ncols
+                for child in obj.get_children():
+                    tikzplotlib_fix_ncols(child)
+            tikzplotlib_fix_ncols(fig)
+            save_file_name = "slope_curvature_plot_tikz.tex"
+            tikzplotlib.save(save_file_name, axis_height='8cm', axis_width='16cm')
+
+        else: 
+            plt.show()
+
+    def calculate_ticks(self, ax, ticks, round_to=0.1, center=True):
+        upperbound = np.ceil(ax.get_ybound()[1]/round_to)
+        lowerbound = np.floor(ax.get_ybound()[0]/round_to)
+        dy = upperbound - lowerbound
+        fit = np.floor(dy/(ticks - 1)) + 1
+        dy_new = (ticks - 1)*fit
+        if center:
+            offset = np.floor((dy_new - dy)/2)
+            lowerbound = lowerbound - offset
+        values = np.linspace(lowerbound, lowerbound + dy_new, ticks)
+        return values*round_to

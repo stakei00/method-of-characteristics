@@ -3,7 +3,7 @@ import os
 import unittest
 import math
 sys.path.append(os.getcwd())
-import method_of_characteristics.oblique_shock as obs
+import aimcat.method_of_characteristics.oblique_shock as obs
 
 class Test_Oblique_Shock(unittest.TestCase):
 
@@ -12,7 +12,7 @@ class Test_Oblique_Shock(unittest.TestCase):
         M1 = 3 
         thet = math.radians(10)
         gam = 1.4
-        shock = obs.Oblique_Shock(M1, gam, thet=thet) #create object 
+        shock = obs.Oblique_Shock(M1, gam, deflec=thet) #create object 
         beta_w_exp, beta_s_exp = math.radians(27.3826906), math.radians(86.4082502)
         p2_p1_exp, rho2_rho1_exp, T2_T1_exp, p02_p01_exp = 2.05447215,1.65458799,1.24168201,0.96308338
 
@@ -28,10 +28,9 @@ class Test_Oblique_Shock(unittest.TestCase):
         beta = math.radians(37.2101360)
         M = 3
         gam = 1.4
-        thet = obs.get_flow_deflection(beta, M, gam)
-        thet_exp = math.radians(8)
-
-        self.assertAlmostEqual(thet, thet_exp, places=1)
+        shockObj = obs.Oblique_Shock(M, gam, beta=beta)
+        thet_exp = math.radians(19.5277388)
+        self.assertAlmostEqual(shockObj.deflec, thet_exp, places=1)
     
     
 if __name__ == "__main__":

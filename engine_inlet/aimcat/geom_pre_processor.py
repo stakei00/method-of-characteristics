@@ -36,6 +36,7 @@ class Inlet_Geom:
         self.geom_type = geom_type
 
         #starting with centerbody:
+        print("\nCenterbody Geometry Parametrization")
         if centerbody_list is not None:
             y_centerbody, dydx_centerbody, centerbody_bounds = self.unpack_surface_function_list(centerbody_list)
 
@@ -63,6 +64,7 @@ class Inlet_Geom:
             self.init_turn_ang_deg = math.degrees(math.atan(self.dydx_centerbody(curve.x_bounds[0]))) 
 
         #next cowl
+        print("\nCowl Geometry Parameterization")
         if cowl_list is not None:
             y_cowl, dydx_cowl, cowl_bounds = self.unpack_surface_function_list(cowl_list)
 
@@ -248,6 +250,12 @@ class Curve:
         if startpoint_d2ydx2 is None and startPoint_dydx is None: 
             coeffs, _ = curve_fit(func_free, xs, ys)
             A,B,C,D,E = coeffs[0],coeffs[1],coeffs[2],coeffs[3],coeffs[4]
+
+            print(f"\tleast-squares polynomial function:\n\
+            {A}*(x-x_a)**5 + {B}*(x-x_a)**4 +{C}*(x-x_a)**3 + {D}*(x-x_a)**2 + {E}*(x-x_a) + y_a\n\
+            x_a: {x_a}\n\
+            y_a: {y_a}")
+
             def y_x(x):
                 if x_a <= x <= max(xs):
                     return A*(x-x_a)**5 + B*(x-x_a)**4 + C*(x-x_a)**3 + D*(x-x_a)**2 + E*(x-x_a) + y_a
@@ -264,6 +272,11 @@ class Curve:
         if startPoint_dydx is not None and startpoint_d2ydx2 is None: 
             coeffs, _ = curve_fit(func_const_1st_deriv, xs, ys)
             A,B,C,D = coeffs[0],coeffs[1],coeffs[2],coeffs[3]
+            print(f"\tleast-squares polynomial function:\n\
+            {A}*(x-x_a)**5 + {B}*(x-x_a)**4 + {C}*(x-x_a)**3 + {D}*(x-x_a)**2 + {startPoint_dydx}*(x-x_a) + y_a\n\
+            x_a: {x_a}\n\
+            y_a: {y_a}")
+            
             def y_x(x):
                 if x_a <= x <= max(xs): 
                     return A*(x-x_a)**5 + B*(x-x_a)**4 + C*(x-x_a)**3 + D*(x-x_a)**2 + startPoint_dydx*(x-x_a) + y_a
@@ -281,6 +294,10 @@ class Curve:
             #curves enforcing a set first and 2nd derivative 
             coeffs, _ = curve_fit(func_const_1st_and_2nd_deriv, xs, ys)
             A,B,C,D = coeffs[0],coeffs[1],coeffs[2],coeffs[3]
+            print(f"\tleast-squares polynomial function:\n\
+            {A}*(x-x_a)**6 + {B}*(x-x_a)**5 + {C}*(x-x_a)**4 + {D}*(x-x_a)**3 + {startpoint_d2ydx2}*(x-x_a)**2 + {startPoint_dydx}*(x-x_a) + y_a\n\
+            x_a: {x_a}\n\
+            y_a: {y_a}")
             def y_x(x):
                 if x_a <= x <= max(xs): 
                     return A*(x-x_a)**6 + B*(x-x_a)**5 + C*(x-x_a)**4 + D*(x-x_a)**3 + startpoint_d2ydx2*(x-x_a)**2 + startPoint_dydx*(x-x_a) + y_a
@@ -296,7 +313,7 @@ class Curve:
 
         #compile error and print to console
         y_x_err = [abs(y_x(x) - ys[i]) for i,x in enumerate(xs)]
-        print(f"\nmaximum least squares position error: {max(y_x_err)}\n\
+        print(f"\n\tmaximum least squares position error: {max(y_x_err)}\n\
               average error: {sum(y_x_err)/len(y_x_err)}")
 
         return y_x, dydx_x, d2ydx2_x
@@ -318,6 +335,11 @@ class Curve:
         elif startPoint_dydx is not None: #if start point slope is given
             x_b = x_end
             m = startPoint_dydx
+
+        print(f"\tlinear function:\n\
+            {m}*(x-x_a) + y_a\n\
+            x_a: {x_a}\n\
+            y_a: {y_a}")
 
         def y_x(x):
             if x_a <= x <= x_b:

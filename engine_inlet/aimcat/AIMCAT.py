@@ -11,7 +11,7 @@ class Main:
        
         self.load_inputs(inputFile, geomFile) #generate input object 
         if preview_geom: 
-            import post_processing.post_process as post_process
+            import aimcat.post_process as post_process
             import json
             try: plotDict = json.load(open(plotFile, 'r'))
             except: plotDict = json.load(open("post_processing/"+plotFile, 'r'))
@@ -28,7 +28,7 @@ class Main:
             self.plot_solution(plotFile)
 
     def load_inputs(self, inpFile:str, geomFile:str) -> None:
-        import Input.input as inp
+        import aimcat.input as inp
         import math 
         inpObj = inp.Input(inpFile, geomFile)
         self.inputs = inpObj
@@ -51,8 +51,8 @@ class Main:
 
     def run_solution(self) -> None:
         print("\nrunning solution...")
-        import method_of_characteristics.moc_mesh_engine as moc
-        import initial_data_line.idl as idl
+        import aimcat.method_of_characteristics.moc_mesh_engine as moc
+        import aimcat.idl as idl
         import math
         import time
 
@@ -66,7 +66,7 @@ class Main:
 
         #RUNNING TAYLOR-MACCOLL or 2D WEDGE SOLUTION: 
         if inp.delta==1: #cone
-            import taylor_maccoll_cone.taylor_maccoll as tmc 
+            import aimcat.taylor_maccoll as tmc 
             self.coneSol = tmc.TaylorMaccoll_Cone(math.radians(inp.geom.init_turn_ang_deg), inp.M_inf, inp.gasProps)
             #check if incident shock crosses centerbody geometry:
             if inp.geom.y_cowl(inp.geom.x_cowl_lip) > math.tan(self.coneSol.shock_ang)*inp.geom.x_cowl_lip:
@@ -74,7 +74,7 @@ class Main:
                 raise ValueError("Incident Shock Crosses Cowl Geometry. Solution Cannot Proceed.")
 
         elif inp.delta==0: #wedge
-            import method_of_characteristics.oblique_shock as shock 
+            import aimcat.method_of_characteristics.oblique_shock as shock 
             deflec = math.radians(inp.geom.init_turn_ang_deg)
             self.rampSol = shock.Oblique_Shock(inp.M_inf, inp.gasProps.gam, inp.gasProps.R, deflec=deflec)
             #check if incident shock crosses centerbody geometry:
@@ -116,7 +116,7 @@ class Main:
         load in plot file and create plots from save file
         """
         import matplotlib.pyplot as plt
-        import post_processing.post_process as post_process 
+        import aimcat.post_process as post_process 
         import json 
 
         print("\ngenerating figures...\n")
@@ -152,7 +152,7 @@ class Main:
                {[round(p,4) for p in self.mesh.p0_ratio_by_region]}")  
 
     def export_results(self) -> None:
-        import os 
+        import os
         import pandas as pd
         import numpy as np 
         import math

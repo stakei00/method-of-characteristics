@@ -1,5 +1,5 @@
 import math 
-import method_of_characteristics.oblique_shock as shock
+import aimcat.method_of_characteristics.oblique_shock as shock
 import numpy as np 
 """
 class for generating initial data line object using flow solution from taylor maccoll module

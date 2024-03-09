@@ -46,7 +46,7 @@ class Input:
               if key_j in json_translator.keys()]
 
     def import_geom(self, geomFile):
-        import geometry.geom_pre_processor as gproc
+        import aimcat.geom_pre_processor as gproc
         """
         Accesses geometry file and stores in input object
         """
