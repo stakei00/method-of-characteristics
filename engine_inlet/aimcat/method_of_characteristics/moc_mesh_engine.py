@@ -171,6 +171,7 @@ class Mesh:
                 except Exception as error: 
                     print("shock mesh halted due to error: ", error)
                     return
+                
                 try: self.compute_wall_to_wall_shock(charDir, self.shockPts_backside[-1])
                 except Exception as error: 
                     print("shock mesh halted due to error: ", error)

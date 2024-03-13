@@ -2,7 +2,7 @@ import math
 import aimcat.method_of_characteristics.oblique_shock as shock
 import numpy as np 
 """
-class for generating initial data line object using flow solution from taylor maccoll module
+class for generating initial data line object
 """
 class Generate_TMC_Initial_Data_Line: 
     """

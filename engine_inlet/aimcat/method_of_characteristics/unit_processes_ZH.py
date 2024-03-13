@@ -1,6 +1,5 @@
 import numpy as np 
 from scipy.optimize import fsolve 
-#import scipy.optimize as scp_opt
 import math
 
 """

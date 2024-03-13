@@ -154,10 +154,14 @@ def wall_shock_point(pt_w_ups, y_x, dydx, pt1, pcTOL, delta, gasProps, shockDir)
      #try to get a solution using iterative method 
     def_4 = def_w #initial guess deflection 
     defPercChange = pcTOL
+    num_it = 0 
     while abs(defPercChange) >= pcTOL:
         def_4_old = def_4
         def_4 = solve_shock(def_4)
         defPercChange = (def_4 - def_4_old)/def_4_old
+        
+        num_it += 1 
+        if num_it >= 500: raise ValueError("From-Wall Shock Point Failed to Converge after 500 iterations")
 
     return solve_shock(def_4, ret="sol")
 
@@ -271,10 +275,14 @@ def wall_incident_shock_point(pt_w_ups, shock_inc, y_x, dydx, pcTOL, delta, gasP
     def_4 = def_w #initial guess deflection 
     defPercChange = pcTOL
 
+    num_it = 0 
     while abs(defPercChange) >= pcTOL:
         def_4_old = def_4
         def_4 = solve_shock(def_4)
         defPercChange = (def_4 - def_4_old)/def_4_old
+
+        num_it += 1 
+        if num_it >= 500: raise ValueError("From-Wall Shock Point Failed to Converge after 500 iterations")
 
     return solve_shock(def_4, ret="sol")
 
@@ -396,10 +404,14 @@ def interior_shock_point(pt_s_ups, pt_s_dwn, beta_s, def_s, pt1, pt_a, pcTOL, de
     def_4 = def_s #initial guess deflection 
     defPercChange = pcTOL
     #print("\nInterior Shock Point Solution:")
+    num_it = 0 
     while abs(defPercChange) >= pcTOL:
         def_4_old = def_4
         def_4 = solve_shock(def_4)
         defPercChange = (def_4 - def_4_old)/def_4_old
+
+        num_it += 1 
+        if num_it >= 500: raise ValueError("Interior Shock Point Failed to Converge after 500 iterations")
 
     #print(f"\tconverged deflection: {math.degrees(def_4)} deg")
     return solve_shock(def_4, ret="sol")
@@ -505,10 +517,14 @@ def interior_incident_shock_point(pt_s_ups, pt_s_dwn, beta_s, def_s, shock_inc, 
     def_4 = def_s #initial guess deflection 
     defPercChange = pcTOL
     #print("\nInterior Shock Point Solution:")
+    num_it = 0 
     while abs(defPercChange) >= pcTOL:
         def_4_old = def_4
         def_4 = solve_shock(def_4)
         defPercChange = (def_4 - def_4_old)/def_4_old
+
+        num_it += 1 
+        if num_it >= 500: raise ValueError("Interior Shock Point Failed to Converge after 500 iterations")
 
     #print(f"\tconverged deflection: {math.degrees(def_4)} deg")
     return solve_shock(def_4, ret="sol")
@@ -634,10 +650,14 @@ def to_wall_shock_point(pt_s_ups, pt_s_dwn, beta_s, def_s, pt1, pt_a, y_x, dydx,
     def_4 = def_s #initial guess deflection 
     defPercChange = pcTOL
 
+    num_it = 0 
     while abs(defPercChange) >= pcTOL:
         def_4_old = def_4
         def_4 = solve_shock(def_4)
         defPercChange = (def_4 - def_4_old)/def_4_old
+
+        num_it += 1 
+        if num_it >= 500: raise ValueError("To-Wall Shock Point Failed to Converge after 500 iterations")
         
     return solve_shock(def_4, ret="sol")        
 

@@ -19,17 +19,17 @@ aimcat.Main(inputFile:str, geomFile:str, plotFile:str or None, export:bool,
 #test_case = "straight_Cone_M2.5"
 test_case = "NASA_D6078_M3.0"
 #test_case = "NASA_D6078_M3.47"
-#test_case = "2D_isentropic_ramp_M2.7"
+#est_case = "2D_isentropic_ramp_M2.7"
 
 #Characterisic Mesh Type
 shock_mesh = True #if true, shock waves will be computed within the mesh 
 
 #Plotting 
 display_geometry_preview = True
-display_all_plots = True #if True, all plots will be displayed, otherwise just mesh and mach scalar
+display_all_plots = False #if True, all plots will be displayed, otherwise just mesh and mach scalar
 
 #Export
-export_to_csv = True
+export_to_csv = False
 
 ################################################################################
 

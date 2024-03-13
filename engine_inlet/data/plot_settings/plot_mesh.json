@@ -8,7 +8,7 @@
     "CHARACTERISTIC MESH":{
         "type":             "mesh",
         "annotate":         false,
-        "show mass flow":   false
+        "show mass flow":   true
     },
     "MACH NUMBER":{
         "type": "scalar",
