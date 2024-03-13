@@ -2,7 +2,7 @@ import json
 """
 This class generates a universal input object from a set of user input files
 """
-class Input: 
+class _Input: 
     
     def __init__(self, inpFile, geomFile):
         #check file name extension for filetype

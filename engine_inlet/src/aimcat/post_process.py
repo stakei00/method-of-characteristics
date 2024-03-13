@@ -478,23 +478,7 @@ class Preview_Geom(create_figure):
         ax2.set_yticks(self.calculate_ticks(ax2, 5))
         ax2.yaxis.label.set_color("tab:blue")
         ax1.legend() 
-
-        if save_to_tikz: 
-            import tikzplotlib
-            def tikzplotlib_fix_ncols(obj):
-                """
-                workaround for matplotlib 3.6 renamed legend's _ncol to _ncols, which breaks tikzplotlib
-                """
-                if hasattr(obj, "_ncols"):
-                    obj._ncol = obj._ncols
-                for child in obj.get_children():
-                    tikzplotlib_fix_ncols(child)
-            tikzplotlib_fix_ncols(fig)
-            save_file_name = "slope_curvature_plot_tikz.tex"
-            tikzplotlib.save(save_file_name, axis_height='8cm', axis_width='16cm')
-
-        else: 
-            plt.show()
+        plt.show()
 
     def calculate_ticks(self, ax, ticks, round_to=0.1, center=True):
         upperbound = np.ceil(ax.get_ybound()[1]/round_to)

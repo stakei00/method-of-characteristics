@@ -61,8 +61,9 @@ else:
 #RUN SOLUTION###################################################################
 import os, sys
 sys.path.append(os.getcwd())
-import aimcat.AIMCAT as aimcat
-aimcat.Main(inputFile=inputFile, 
+from aimcat import AIMCAT
+
+AIMCAT.Main(inputFile=inputFile, 
             geomFile=inletFile, 
             plotFile=plotfile,
             export=export_to_csv, 

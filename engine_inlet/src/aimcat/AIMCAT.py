@@ -28,9 +28,9 @@ class Main:
             self.plot_solution(plotFile)
 
     def load_inputs(self, inpFile:str, geomFile:str) -> None:
-        import aimcat.input as inp
+        import aimcat._input as inp
         import math 
-        inpObj = inp.Input(inpFile, geomFile)
+        inpObj = inp._Input(inpFile, geomFile)
         self.inputs = inpObj
 
         #Kind of a dirty solution, but adds freestream object for plotting purposes

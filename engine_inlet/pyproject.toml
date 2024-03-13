@@ -6,7 +6,7 @@ authors = [
 ]
 description = "aimcat - Air Inlet Method of Characteristics Analysis Tool"
 readme = "README.md"
-requires-python = ">=3.10"
+requires-python = ">=3.9"
 classifiers = [
     "Programming Language :: Python :: 3",
     "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",
@@ -16,6 +16,7 @@ dependencies = [
   "matplotlib",
   "scipy",
   "numpy",
+  "pandas",
 ]
 
 [build-system]
